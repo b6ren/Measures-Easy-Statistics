@@ -13,6 +13,11 @@ import statistics
 from tkinter import *
 from tkinter import ttk
 from mr import MR
+from u import U
+from xbarr import XBARR
+from xbars import XBARS
+from boxplot import Boxplot
+import math
 
 def main():
 
@@ -130,6 +135,480 @@ def main():
         c_additional_second.grid(row=8,sticky=W, padx=15)
         btn = Button(frameThree, text="确定", command=lambda:mr.submit(e_column.get(), r_value))
         btn.grid(column=1, row=9, sticky=E, padx=15, pady=20)
+    
+    #简单回归
+    def clicked_simple_regression():
+        window_sign_up = Toplevel(window)
+        window_sign_up.geometry("575x510")
+        window_sign_up.title('属性')
+
+        notebook = ttk.Notebook(window_sign_up)
+
+        frameOne = Frame(notebook)
+        frameTwo = Frame(notebook)
+        frameThree = Frame(notebook)
+        
+        notebook.add(frameOne, text='数据')
+        notebook.add(frameTwo, text='选项')
+        notebook.add(frameThree, text='图表')
+        notebook.grid(column=2, row=0)
+
+        l_column =Label(frameOne,text='响应变量（Y）: ')
+        l_column.grid(row=0,sticky=W, padx=15, pady=20)
+        e_column =Entry(frameOne)
+        e_column.grid(row=0,column=1,sticky=E)
+        l_subgroup =Label(frameOne,text='预测变量（X）: ')
+        l_subgroup.grid(row=1,sticky=W, padx=15, pady=20)
+        e_subgroup =Entry(frameOne)
+        e_subgroup.grid(row=1,column=1,sticky=E)
+        l_type =Label(frameOne,text='回归模型类型: ')
+        l_type.grid(row=2,sticky=W, padx=15, pady=20)
+        r_value_one = StringVar()
+        r_params = Radiobutton(frameTwo, text="直线型", variable=r_value_one, value="Estimate")
+        r_params.grid(row=1,sticky=W, padx=15)
+        #r_params_second = Radiobutton(frameTwo, text="Specify the value for one or both parameters", variable=r_value, value="Not Estimate")
+        r_params_second = Radiobutton(frameTwo, text="平方型", variable=r_value_one, value="Not Estimate")
+        r_params_second.grid(row=2,sticky=W, padx=15)
+        r_params_second = Radiobutton(frameTwo, text="立方型", variable=r_value_one, value="Not Estimate")
+        r_params_second.grid(row=3,sticky=W, padx=15)
+        u = U()
+        r_value = StringVar()
+        r_value.set("Estimate")
+        btn = Button(frameOne, text="确定", command=lambda: u.submit(e_column.get(), e_subgroup.get(), r_value))
+        btn.grid(column=1, row=3, sticky=E)
+
+        #Section One
+        
+        #r_params = Radiobutton(frameTwo, text="Estimate the mean and the standard deviation from the data", variable=r_value, value="Estimate")
+        r_params = Radiobutton(frameTwo, text="显示95%置信区间", variable=r_value, value="Estimate")
+        r_params.grid(row=1,sticky=W, padx=15)
+        #r_params_second = Radiobutton(frameTwo, text="Specify the value for one or both parameters", variable=r_value, value="Not Estimate")
+        r_params_second = Radiobutton(frameTwo, text="显示95%预测区间", variable=r_value, value="Not Estimate")
+        r_params_second.grid(row=2,sticky=W, padx=15)
+        
+        
+        e_mean =Entry(frameTwo,state=DISABLED)
+        e_mean.grid(row=3,column=1,sticky=E)
+        
+        
+        e_sd =Entry(frameTwo,state=DISABLED)
+        e_sd.grid(row=4,column=1,sticky=E)
+        #Section Two
+        btn = Button(frameTwo, text="确定", command=lambda:u.submit(e_column.get(), e_subgroup.get(), r_value))
+        btn.grid(column=1, row=6, sticky=E)
+
+        #Display
+        #Section One
+        longtext='''全部检验：
+        1. 1个点，距离中心线大于3个标准差
+        2. 连续9点在中心线同一侧
+        3. 连续6个点，全部递增或全部递减
+        4. 连续14个点，上下交错
+        5. 3个点中有2个点，距离中心线（同侧）大于2个标准差
+        6. 5个点中有4个点，距离中心线（同侧）大于1个标准差
+        7. 连续15个点，距离中心线（任一侧）1个标准差以内
+        8. 连续8个点，距离中心线（任一侧）大于1个标准差
+        '''
+        l_tests =Label(frameThree,text = longtext, justify = "left")
+        l_tests.grid(row=0,sticky=W, padx=15, pady=20)
+        r_value_display = StringVar()
+        r_value_display.set("testOne")
+        r_tests_second = Radiobutton(frameThree, text="执行全部特殊检验", variable=r_value_display, value="all tests")
+        r_tests_second.grid(row=3,sticky=W, padx=15)
+        r_tests = Radiobutton(frameThree, text="仅执行检验1", variable=r_value_display, value="testOne")
+        r_tests.grid(row=2,sticky=W, padx=15)
+        r_tests_third = Radiobutton(frameThree, text="仅执行检验1、5、6、8", variable=r_value_display, value="part of tests")
+        r_tests_third.grid(row=4,sticky=W, padx=15)
+        r_tests_four = Radiobutton(frameThree, text="不执行检验", variable=r_value_display, value="no tests")
+        r_tests_four.grid(row=5,sticky=W, padx=15)
+        l_tests =Label(frameThree,text='特殊检验：')
+        l_tests.grid(row=1,sticky=W, padx=15)
+        #Section Two
+        c_value_1 = "1sd"
+        c_value_2 = "2sd"
+        l_additional =Label(frameThree,text='显示额外的在中心线上下的标准差限制：')
+        l_additional.grid(row=6,sticky=W, padx=15)
+        c_additional = Checkbutton(frameThree, text="1标准差", variable=c_value_1, command=show_options)
+        c_additional.grid(row=7,sticky=W, padx=15)
+        c_additional_second = Checkbutton(frameThree, text="2标准差", variable=c_value_2, command=show_options)
+        c_additional_second.grid(row=8,sticky=W, padx=15)
+        btn = Button(frameThree, text="确定", command=lambda:u.submit(e_column.get(), e_subgroup.get(), r_value))
+        btn.grid(column=1, row=9, sticky=E, padx=15, pady=20)
+
+    #箱线图
+    def clicked_boxplot():
+        window_sign_up = Toplevel(window)
+        window_sign_up.geometry("575x510")
+        window_sign_up.title('箱线图')
+        boxplot = Boxplot()
+        def clicked_singleY():
+            window_plot = Toplevel(window_sign_up)
+            window_plot.geometry("575x510")
+            window_plot.title('选项')
+            l_column =Label(window_plot,text='列(A,B,C...): ')
+            l_column.grid(row=0,sticky=W, padx=15, pady=20)
+            e_column =Entry(window_plot)
+            e_column.grid(row=0,column=1,sticky=E)
+            btn = Button(window_plot, text="确定", command=lambda:boxplot.submit_singleY(e_column.get()))
+            btn.grid(column=1, row=3, sticky=E)
+        def clicked_multipleY():
+            window_plot = Toplevel(window_sign_up)
+            window_plot.geometry("575x510")
+            window_plot.title('选项')
+            l_column =Label(window_plot,text='列(A,B,C...): ')
+            l_column.grid(row=0,sticky=W, padx=15, pady=20)
+            e_column =Entry(window_plot)
+            e_column.grid(row=0,column=1,sticky=E)
+            btn = Button(window_plot, text="确定", command=lambda:boxplot.submit_multipleY(e_column.get()))
+            btn.grid(column=1, row=3, sticky=E)
+        def clicked_singleY_withGroups():
+            window_plot = Toplevel(window_sign_up)
+            window_plot.geometry("575x510")
+            window_plot.title('选项')
+            l_column =Label(window_plot,text='Y值的一列(A,B,C...): ')
+            l_column.grid(row=0,sticky=W, padx=15, pady=20)
+            e_column =Entry(window_plot)
+            e_column.grid(row=0,column=1,sticky=E)
+            l_column_x =Label(window_plot,text='类别列(A,B,C...): ')
+            l_column_x.grid(row=1,sticky=W, padx=15, pady=20)
+            e_column_x =Entry(window_plot)
+            e_column_x.grid(row=1,column=1,sticky=E)
+            btn = Button(window_plot, text="确定", command=lambda:boxplot.submit_singleY_withGroups(e_column.get(), e_column_x.get()))
+            btn.grid(column=1, row=3, sticky=E)
+
+        btn = Button(window_sign_up, text="单y变量-单组", command=clicked_singleY)
+        btn.grid(column=0, row=0, padx=15, pady=20, sticky=W)
+        btn = Button(window_sign_up, text="单y变量-多组", command=clicked_singleY_withGroups)
+        btn.grid(column=1, row=0, padx=15, pady=20,  sticky=W)
+        btn = Button(window_sign_up, text="多y变量-单组", command=clicked_multipleY)
+        btn.grid(column=2, row=0, padx=15, pady=20,  sticky=W)
+        btn = Button(window_sign_up, text="取消", command=window_sign_up.destroy)
+        btn.grid(column=3, row=3, padx=15, pady=20,  sticky=E)
+    
+    #U控制图
+    def clicked_u():
+        window_sign_up = Toplevel(window)
+        window_sign_up.geometry("575x510")
+        window_sign_up.title('属性')
+        def show_options():
+            if l_mean['state']==NORMAL:
+                l_mean['state']=DISABLED
+                l_sd['state']=DISABLED
+                e_mean['state']=DISABLED
+                e_sd['state']=DISABLED
+            else:
+                l_mean['state']=NORMAL
+                e_mean['state']=NORMAL
+                l_sd['state']=NORMAL
+                e_sd['state']=NORMAL
+        def show_options_e():
+            l_mean['state']=DISABLED
+            e_mean['state']=DISABLED
+            l_sd['state']=DISABLED
+            e_sd['state']=DISABLED
+
+        notebook = ttk.Notebook(window_sign_up)
+
+        frameOne = Frame(notebook)
+        frameTwo = Frame(notebook)
+        frameThree = Frame(notebook)
+        
+        notebook.add(frameOne, text='数据')
+        notebook.add(frameTwo, text='选项')
+        notebook.add(frameThree, text='显示')
+        notebook.grid(column=2, row=0)
+
+        l_column =Label(frameOne,text='列(A,B,C...): ')
+        l_column.grid(row=0,sticky=W, padx=15, pady=20)
+        e_column =Entry(frameOne)
+        e_column.grid(row=0,column=1,sticky=E)
+        l_subgroup =Label(frameOne,text='子组大小: ')
+        l_subgroup.grid(row=1,sticky=W, padx=15, pady=20)
+        e_subgroup =Entry(frameOne)
+        e_subgroup.grid(row=1,column=1,sticky=E)
+        u = U()
+        r_value = StringVar()
+        r_value.set("Estimate")
+        btn = Button(frameOne, text="确定", command=lambda: u.submit(e_column.get(), e_subgroup.get(), r_value))
+        btn.grid(column=1, row=3, sticky=E)
+
+        l_mean =Label(frameTwo,text='平均值：',state=DISABLED)
+        l_mean.grid(row=3,sticky=W, padx=15)
+        l_sd =Label(frameTwo,text='标准差：',state=DISABLED)
+        l_sd.grid(row=4,sticky=W, padx=15)
+        #Section One
+        
+        #r_params = Radiobutton(frameTwo, text="Estimate the mean and the standard deviation from the data", variable=r_value, value="Estimate")
+        r_params = Radiobutton(frameTwo, text="根据数据估算平均值和标准差", variable=r_value, value="Estimate", command=show_options_e)
+        r_params.grid(row=1,sticky=W, padx=15)
+        #r_params_second = Radiobutton(frameTwo, text="Specify the value for one or both parameters", variable=r_value, value="Not Estimate")
+        r_params_second = Radiobutton(frameTwo, text="指定一个或两个参数的值", variable=r_value, value="Not Estimate", command=show_options)
+        r_params_second.grid(row=2,sticky=W, padx=15)
+        l_params =Label(frameTwo,text='参数：')
+        l_params.grid(row=0,sticky=W, padx=15, pady=20)
+        
+        
+        e_mean =Entry(frameTwo,state=DISABLED)
+        e_mean.grid(row=3,column=1,sticky=E)
+        
+        
+        e_sd =Entry(frameTwo,state=DISABLED)
+        e_sd.grid(row=4,column=1,sticky=E)
+        #Section Two
+        btn = Button(frameTwo, text="确定", command=lambda:u.submit(e_column.get(), e_subgroup.get(), r_value))
+        btn.grid(column=1, row=6, sticky=E)
+
+        #Display
+        #Section One
+        longtext='''全部检验：
+        1. 1个点，距离中心线大于3个标准差
+        2. 连续9点在中心线同一侧
+        3. 连续6个点，全部递增或全部递减
+        4. 连续14个点，上下交错
+        5. 3个点中有2个点，距离中心线（同侧）大于2个标准差
+        6. 5个点中有4个点，距离中心线（同侧）大于1个标准差
+        7. 连续15个点，距离中心线（任一侧）1个标准差以内
+        8. 连续8个点，距离中心线（任一侧）大于1个标准差
+        '''
+        l_tests =Label(frameThree,text = longtext, justify = "left")
+        l_tests.grid(row=0,sticky=W, padx=15, pady=20)
+        r_value_display = StringVar()
+        r_value_display.set("testOne")
+        r_tests_second = Radiobutton(frameThree, text="执行全部特殊检验", variable=r_value_display, value="all tests")
+        r_tests_second.grid(row=3,sticky=W, padx=15)
+        r_tests = Radiobutton(frameThree, text="仅执行检验1", variable=r_value_display, value="testOne")
+        r_tests.grid(row=2,sticky=W, padx=15)
+        r_tests_third = Radiobutton(frameThree, text="仅执行检验1、5、6、8", variable=r_value_display, value="part of tests")
+        r_tests_third.grid(row=4,sticky=W, padx=15)
+        r_tests_four = Radiobutton(frameThree, text="不执行检验", variable=r_value_display, value="no tests")
+        r_tests_four.grid(row=5,sticky=W, padx=15)
+        l_tests =Label(frameThree,text='特殊检验：')
+        l_tests.grid(row=1,sticky=W, padx=15)
+        #Section Two
+        c_value_1 = "1sd"
+        c_value_2 = "2sd"
+        l_additional =Label(frameThree,text='显示额外的在中心线上下的标准差限制：')
+        l_additional.grid(row=6,sticky=W, padx=15)
+        c_additional = Checkbutton(frameThree, text="1标准差", variable=c_value_1, command=show_options)
+        c_additional.grid(row=7,sticky=W, padx=15)
+        c_additional_second = Checkbutton(frameThree, text="2标准差", variable=c_value_2, command=show_options)
+        c_additional_second.grid(row=8,sticky=W, padx=15)
+        btn = Button(frameThree, text="确定", command=lambda:u.submit(e_column.get(), e_subgroup.get(), r_value))
+        btn.grid(column=1, row=9, sticky=E, padx=15, pady=20)
+
+    #xbar-s控制图
+    def clicked_xbars():
+        window_sign_up = Toplevel(window)
+        window_sign_up.geometry("575x510")
+        window_sign_up.title('属性')
+        def show_options():
+            if l_mean['state']==NORMAL:
+                l_mean['state']=DISABLED
+                l_sd['state']=DISABLED
+                e_mean['state']=DISABLED
+                e_sd['state']=DISABLED
+            else:
+                l_mean['state']=NORMAL
+                e_mean['state']=NORMAL
+                l_sd['state']=NORMAL
+                e_sd['state']=NORMAL
+        def show_options_e():
+            l_mean['state']=DISABLED
+            e_mean['state']=DISABLED
+            l_sd['state']=DISABLED
+            e_sd['state']=DISABLED
+
+        notebook = ttk.Notebook(window_sign_up)
+
+        frameOne = Frame(notebook)
+        frameTwo = Frame(notebook)
+        frameThree = Frame(notebook)
+        
+        notebook.add(frameOne, text='数据')
+        notebook.add(frameTwo, text='选项')
+        notebook.add(frameThree, text='显示')
+        notebook.grid(column=2, row=0)
+
+        l_column =Label(frameOne,text='列(A,B,C...): ')
+        l_column.grid(row=0,sticky=W, padx=15, pady=20)
+        e_column =Entry(frameOne)
+        e_column.grid(row=0,column=1,sticky=E)
+        xbars = XBARS()
+        r_value = StringVar()
+        r_value.set("Estimate")
+        btn = Button(frameOne, text="确定", command=lambda: xbars.submit(e_column.get(), r_value))
+        btn.grid(column=1, row=3, sticky=E)
+
+        l_mean =Label(frameTwo,text='平均值：',state=DISABLED)
+        l_mean.grid(row=3,sticky=W, padx=15)
+        l_sd =Label(frameTwo,text='标准差：',state=DISABLED)
+        l_sd.grid(row=4,sticky=W, padx=15)
+        #Section One
+        
+        #r_params = Radiobutton(frameTwo, text="Estimate the mean and the standard deviation from the data", variable=r_value, value="Estimate")
+        r_params = Radiobutton(frameTwo, text="根据数据估算平均值和标准差", variable=r_value, value="Estimate", command=show_options_e)
+        r_params.grid(row=1,sticky=W, padx=15)
+        #r_params_second = Radiobutton(frameTwo, text="Specify the value for one or both parameters", variable=r_value, value="Not Estimate")
+        r_params_second = Radiobutton(frameTwo, text="指定一个或两个参数的值", variable=r_value, value="Not Estimate", command=show_options)
+        r_params_second.grid(row=2,sticky=W, padx=15)
+        l_params =Label(frameTwo,text='参数：')
+        l_params.grid(row=0,sticky=W, padx=15, pady=20)
+        
+        
+        e_mean =Entry(frameTwo,state=DISABLED)
+        e_mean.grid(row=3,column=1,sticky=E)
+        
+        
+        e_sd =Entry(frameTwo,state=DISABLED)
+        e_sd.grid(row=4,column=1,sticky=E)
+        #Section Two
+        btn = Button(frameTwo, text="确定", command=lambda:xbars.submit(e_column.get(), r_value))
+        btn.grid(column=1, row=6, sticky=E)
+
+        #Display
+        #Section One
+        longtext='''全部检验：
+        1. 1个点，距离中心线大于3个标准差
+        2. 连续9点在中心线同一侧
+        3. 连续6个点，全部递增或全部递减
+        4. 连续14个点，上下交错
+        5. 3个点中有2个点，距离中心线（同侧）大于2个标准差
+        6. 5个点中有4个点，距离中心线（同侧）大于1个标准差
+        7. 连续15个点，距离中心线（任一侧）1个标准差以内
+        8. 连续8个点，距离中心线（任一侧）大于1个标准差
+        '''
+        l_tests =Label(frameThree,text = longtext, justify = "left")
+        l_tests.grid(row=0,sticky=W, padx=15, pady=20)
+        r_value_display = StringVar()
+        r_value_display.set("testOne")
+        r_tests_second = Radiobutton(frameThree, text="执行全部特殊检验", variable=r_value_display, value="all tests")
+        r_tests_second.grid(row=3,sticky=W, padx=15)
+        r_tests = Radiobutton(frameThree, text="仅执行检验1", variable=r_value_display, value="testOne")
+        r_tests.grid(row=2,sticky=W, padx=15)
+        r_tests_third = Radiobutton(frameThree, text="仅执行检验1、5、6、8", variable=r_value_display, value="part of tests")
+        r_tests_third.grid(row=4,sticky=W, padx=15)
+        r_tests_four = Radiobutton(frameThree, text="不执行检验", variable=r_value_display, value="no tests")
+        r_tests_four.grid(row=5,sticky=W, padx=15)
+        l_tests =Label(frameThree,text='特殊检验：')
+        l_tests.grid(row=1,sticky=W, padx=15)
+        #Section Two
+        c_value_1 = "1sd"
+        c_value_2 = "2sd"
+        l_additional =Label(frameThree,text='显示额外的在中心线上下的标准差限制：')
+        l_additional.grid(row=6,sticky=W, padx=15)
+        c_additional = Checkbutton(frameThree, text="1标准差", variable=c_value_1, command=show_options)
+        c_additional.grid(row=7,sticky=W, padx=15)
+        c_additional_second = Checkbutton(frameThree, text="2标准差", variable=c_value_2, command=show_options)
+        c_additional_second.grid(row=8,sticky=W, padx=15)
+        btn = Button(frameThree, text="确定", command=lambda:xbars.submit(e_column.get(), r_value))
+        btn.grid(column=1, row=9, sticky=E, padx=15, pady=20)
+    
+    #xbar-r控制图
+    def clicked_xbarr():
+        window_sign_up = Toplevel(window)
+        window_sign_up.geometry("575x510")
+        window_sign_up.title('属性')
+        def show_options():
+            if l_mean['state']==NORMAL:
+                l_mean['state']=DISABLED
+                l_sd['state']=DISABLED
+                e_mean['state']=DISABLED
+                e_sd['state']=DISABLED
+            else:
+                l_mean['state']=NORMAL
+                e_mean['state']=NORMAL
+                l_sd['state']=NORMAL
+                e_sd['state']=NORMAL
+        def show_options_e():
+            l_mean['state']=DISABLED
+            e_mean['state']=DISABLED
+            l_sd['state']=DISABLED
+            e_sd['state']=DISABLED
+
+        notebook = ttk.Notebook(window_sign_up)
+
+        frameOne = Frame(notebook)
+        frameTwo = Frame(notebook)
+        frameThree = Frame(notebook)
+        
+        notebook.add(frameOne, text='数据')
+        notebook.add(frameTwo, text='选项')
+        notebook.add(frameThree, text='显示')
+        notebook.grid(column=2, row=0)
+
+        l_column =Label(frameOne,text='列(A,B,C...): ')
+        l_column.grid(row=0,sticky=W, padx=15, pady=20)
+        e_column =Entry(frameOne)
+        e_column.grid(row=0,column=1,sticky=E)
+        xbarr = XBARR()
+        r_value = StringVar()
+        r_value.set("Estimate")
+        btn = Button(frameOne, text="确定", command=lambda: xbarr.submit(e_column.get(), r_value))
+        btn.grid(column=1, row=3, sticky=E)
+
+        l_mean =Label(frameTwo,text='平均值：',state=DISABLED)
+        l_mean.grid(row=3,sticky=W, padx=15)
+        l_sd =Label(frameTwo,text='标准差：',state=DISABLED)
+        l_sd.grid(row=4,sticky=W, padx=15)
+        #Section One
+        
+        #r_params = Radiobutton(frameTwo, text="Estimate the mean and the standard deviation from the data", variable=r_value, value="Estimate")
+        r_params = Radiobutton(frameTwo, text="根据数据估算平均值和标准差", variable=r_value, value="Estimate", command=show_options_e)
+        r_params.grid(row=1,sticky=W, padx=15)
+        #r_params_second = Radiobutton(frameTwo, text="Specify the value for one or both parameters", variable=r_value, value="Not Estimate")
+        r_params_second = Radiobutton(frameTwo, text="指定一个或两个参数的值", variable=r_value, value="Not Estimate", command=show_options)
+        r_params_second.grid(row=2,sticky=W, padx=15)
+        l_params =Label(frameTwo,text='参数：')
+        l_params.grid(row=0,sticky=W, padx=15, pady=20)
+        
+        
+        e_mean =Entry(frameTwo,state=DISABLED)
+        e_mean.grid(row=3,column=1,sticky=E)
+        
+        
+        e_sd =Entry(frameTwo,state=DISABLED)
+        e_sd.grid(row=4,column=1,sticky=E)
+        #Section Two
+        btn = Button(frameTwo, text="确定", command=lambda:xbarr.submit(e_column.get(), r_value))
+        btn.grid(column=1, row=6, sticky=E)
+
+        #Display
+        #Section One
+        longtext='''全部检验：
+        1. 1个点，距离中心线大于3个标准差
+        2. 连续9点在中心线同一侧
+        3. 连续6个点，全部递增或全部递减
+        4. 连续14个点，上下交错
+        5. 3个点中有2个点，距离中心线（同侧）大于2个标准差
+        6. 5个点中有4个点，距离中心线（同侧）大于1个标准差
+        7. 连续15个点，距离中心线（任一侧）1个标准差以内
+        8. 连续8个点，距离中心线（任一侧）大于1个标准差
+        '''
+        l_tests =Label(frameThree,text = longtext, justify = "left")
+        l_tests.grid(row=0,sticky=W, padx=15, pady=20)
+        r_value_display = StringVar()
+        r_value_display.set("testOne")
+        r_tests_second = Radiobutton(frameThree, text="执行全部特殊检验", variable=r_value_display, value="all tests")
+        r_tests_second.grid(row=3,sticky=W, padx=15)
+        r_tests = Radiobutton(frameThree, text="仅执行检验1", variable=r_value_display, value="testOne")
+        r_tests.grid(row=2,sticky=W, padx=15)
+        r_tests_third = Radiobutton(frameThree, text="仅执行检验1、5、6、8", variable=r_value_display, value="part of tests")
+        r_tests_third.grid(row=4,sticky=W, padx=15)
+        r_tests_four = Radiobutton(frameThree, text="不执行检验", variable=r_value_display, value="no tests")
+        r_tests_four.grid(row=5,sticky=W, padx=15)
+        l_tests =Label(frameThree,text='特殊检验：')
+        l_tests.grid(row=1,sticky=W, padx=15)
+        #Section Two
+        c_value_1 = "1sd"
+        c_value_2 = "2sd"
+        l_additional =Label(frameThree,text='显示额外的在中心线上下的标准差限制：')
+        l_additional.grid(row=6,sticky=W, padx=15)
+        c_additional = Checkbutton(frameThree, text="1标准差", variable=c_value_1, command=show_options)
+        c_additional.grid(row=7,sticky=W, padx=15)
+        c_additional_second = Checkbutton(frameThree, text="2标准差", variable=c_value_2, command=show_options)
+        c_additional_second.grid(row=8,sticky=W, padx=15)
+        btn = Button(frameThree, text="确定", command=lambda:xbarr.submit(e_column.get(), r_value))
+        btn.grid(column=1, row=9, sticky=E, padx=15, pady=20)
 
     #xbar控制图
     def clicked_xbar():
@@ -159,8 +638,8 @@ def main():
             Column = Column.split(",")
             incidents = pd.DataFrame(pd.read_excel(
                 '/Users/boyaren/Documents/ExcelStatistics/ControlChart/Measures-Easy-Statistics/每日新增BUG数的控制图.xlsx',
-                sheet_name='其他监控PPB',
-                header=5,
+                sheet_name='Sheet3',
+                header=0,
                 )) 
             numberOfColumns = len(Column)
             dic = {i:i for i in range(numberOfColumns)}
@@ -177,15 +656,136 @@ def main():
                 dic[i] = targetDf.values
                 i = i+1
 
+            """ #建表
+            constants={"d":[1.128, 1.693, 2.059, 2.326, 2.534, 2.704, 2.847, 2.97, 3.078], "A":[1.88, 1.023, 0.729, 0.577, 0.483, 0.719, 0.373, 0.337, 0.308]}
+            constants=pd.DataFrame(constants, index=[2,3,4,5,6,7,8,9,10])
+            print(constants) """
+
+            #建表
+            constants={"d":[1.128, 1.693, 2.059, 2.326, 2.534, 2.704, 2.847, 2.97, 3.078,1,1,1,1,1,1,1,1,1,1,1,1,1,1], "c":[0.798, 0.886, 0.921, 0.940, 0.952, 0.959, 0.965, 0.969, 0.973, 0.975, 0.978, 0.979, 0.981, 0.982, 0.984, 0.985, 0.985, 0.986, 0.987, 0.988, 0.988, 0.989, 0.989]}
+            constants=pd.DataFrame(constants, index=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24])
+            print(constants)
+
             #画图部分
             df = pd.DataFrame(dic)
+            print(dic)
             x1_bar = df.mean().mean()
-            R1 = (df.max(axis=1) - df.min(axis=1)).sum()/numberOfColumns
-            #df['sample_no'] = ['#'+str(i) for i in range(1,6)]
             results = df[dic.keys()].mean(axis=1)
             results.index = range(0,df.iloc[:,0].size)
-            results.plot(xticks=results.index)
+            # 插入一个空值 mR 比 x 少1个自由度
+            MR = [np.nan]
+            # 计算移动极差
+            i = 1
+            for n in range(len(results) - 1):
+                MR.append(abs(results[n + 1] - results[n]))
+            i += 1
+            # 移动极差的 Pandas Series
+            MR = pd.Series(MR)
+            # 数据的 Pandas Dataframe
+            data = pd.concat([results, MR], axis=1)
+            data.columns = ['results', 'MR']
 
+            # 计算 MR-bar
+            mr_bar = statistics.mean(data['MR'][1:])
+            mr_s = results.values.std()/(constants["c"][numberOfColumns]*numberOfColumns)
+            #mr_s = (mr_bar/constants["d"][numberOfColumns])*constants["c"][numberOfColumns]
+            #mr_s = results.values.std()/(constants["c"][numberOfColumns])
+            #mr_s = (mr_bar/constants["d"][numberOfColumns])/constants["c"][numberOfColumns]
+            print(mr_s)
+            R1 = (df.max(axis=1) - df.min(axis=1)).sum()/df.iloc[:,0].size
+            #df['sample_no'] = ['#'+str(i) for i in range(1,6)]
+            
+            #sd = results.values.std()
+            #print(type(results))
+            #print(results)
+            #results.plot(xticks=results.index)
+            #plt.show()
+
+            xUCL = x1_bar + 3 * mr_s
+            xLCL = x1_bar - 3 * mr_s
+            #xLCL = x1_bar - 3 * mr_s/math.sqrt(df.iloc[:,0].size)
+            fig = make_subplots(rows=1, cols=1, subplot_titles=("xbar控制图"), specs=[[{'secondary_y': True}]])
+            # 带条件的颜色列表
+            #colors_1 = ['RoyalBlue' if x == False else 'crimson' for x in mask_cl]
+            # 折线图主体
+            fig.add_trace(go.Scatter(x=np.arange(0, df.iloc[:,0].size), y=results,
+                        mode='lines+markers',
+                        line_color='RoyalBlue',
+                        #marker_color=colors_1,
+                        line=dict(width=1),
+                        marker=dict(size=5),
+                        name='x'),
+                        row=1, 
+                        col=1,
+                        #unique y false
+                        secondary_y=False)
+            # 设置布局
+            lowPoint = np.minimum(min(results),xLCL)
+            highPoint = np.maximum(max(results),xUCL)
+            fig.update_layout(hovermode='x',
+                            title='xbar控制图',
+                            showlegend=False,
+                            width=1200, height=1200 * (highPoint-lowPoint) / df.iloc[:,0].size)
+            # 设置 x 轴
+            fig.update_xaxes(title='样本',
+                            tick0=0, dtick=10,
+                            ticks='outside', tickwidth=1, tickcolor='black',
+                            range=[0, df.iloc[:,0].size],
+                            zeroline=False,
+                            showgrid=False,
+                            row=1, 
+                            col=1,)
+            # 设置主 y 轴
+            fig.update_yaxes(title='xbar',
+                            ticks='outside', tickwidth=1, tickcolor='black',
+                            range=[lowPoint, highPoint],
+                            nticks=5,
+                            showgrid=False,
+                            #unique y false
+                            secondary_y=False,
+                            row=1, 
+                            col=1,)
+            # UCL 辅助线
+            fig.add_shape(type='line',
+                        line_color='crimson',
+                        line_width=1,
+                        x0=0, x1=df.iloc[:,0].size, xref='x1', y0=xUCL, y1=xUCL, yref='y2',
+                        secondary_y=True,
+                        row=1, 
+                        col=1,)
+            # 均值辅助线
+            fig.add_shape(type='line',
+                        line_color='LightSeaGreen',
+                        line_width=1,
+                        x0=0, x1=df.iloc[:,0].size, xref='x1', y0=x1_bar, y1=x1_bar, yref='y2',
+                        secondary_y=True,
+                        row=1, 
+                        col=1,)
+            # LCL 辅助线
+            fig.add_shape(type='line',
+                        line_color='crimson',
+                        line_width=1,
+                        x0=0, x1=df.iloc[:,0].size, xref='x1', y0=xLCL, y1=xLCL, yref='y2',
+                        secondary_y=True,
+                        row=1, 
+                        col=1,)
+            # 设置副 y 轴 为了方便标记界限值
+            fig.update_yaxes(ticks='outside', tickwidth=1, tickcolor='black',
+                            range=[lowPoint, highPoint],
+                            ticktext=['LCL=' + str(np.round(xLCL, 3)),
+                                    'x-bar=' + str(np.round(x1_bar, 3)),
+                                    'UCL=' + str(np.round(xUCL, 3))],
+                            tickvals=[xLCL, x1_bar, xUCL],
+                            showgrid=False,
+                            secondary_y=True,
+                            row=1, 
+                            col=1,)
+
+            app=xw.App(visible=False, add_book=True)
+            bk=app.books.open('/Users/boyaren/Documents/ExcelStatistics/ControlChart/Measures-Easy-Statistics/每日新增BUG数的控制图.xlsx')
+            sht=bk.sheets.add()
+            sht.name='sheet2'
+            sht.pictures.add(fig, name='xbar plot', update=True, left=sht.range('A1').left, top=sht.range('A1').top, width=600, height=600 * (highPoint-lowPoint) / df.iloc[:,0].size)
 
             """ x = {incidents.iloc[:,int(number)],
                 incidents.iloc[:,int(number)]
@@ -526,10 +1126,16 @@ def main():
     btn.grid(column=1, row=0, padx=15, pady=20)
     btn = Button(window, text="Xbar控制图", command=clicked_xbar)
     btn.grid(column=2, row=0, padx=15, pady=20)
-    btn = Button(window, text="Xbar-R控制图", command=clicked)
+    btn = Button(window, text="Xbar-R控制图", command=clicked_xbarr)
     btn.grid(column=3, row=0, padx=15, pady=20)
-    btn = Button(window, text="Xbar-S控制图", command=clicked)
+    btn = Button(window, text="Xbar-S控制图", command=clicked_xbars)
     btn.grid(column=4, row=0, padx=15, pady=20)
+    btn = Button(window, text="U控制图", command=clicked_u)
+    btn.grid(column=1, row=1, padx=15, pady=20)
+    btn = Button(window, text="箱线图", command=clicked_boxplot)
+    btn.grid(column=2, row=1, padx=15, pady=20)
+    btn = Button(window, text="简单回归", command=clicked_simple_regression)
+    btn.grid(column=3, row=1, padx=15, pady=20)
 
     window.mainloop()   
 
